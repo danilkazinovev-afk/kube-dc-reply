@@ -8,6 +8,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+/* Chart.js under-measures numeric tick labels in this font, so a 5-character
+   value like "1,600" is drawn wider than the axis it reserved and loses its
+   leading digit off the left edge of the canvas. Measured: 39px reserved for a
+   label that needs ~45px. Give every numeric y axis a few pixels back. Set
+   before any chart is constructed so it costs no re-render. */
+Chart.defaults.scales.linear.afterFit = function(scale){
+  if (scale.axis === "y") scale.width += 10;
+};
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -132,7 +142,7 @@ header{
 
 /* ── Rows ── */
 .row{display:grid;gap:14px;margin-bottom:14px}
-.row-2col{grid-template-columns:320px 1fr}
+.row-2col{grid-template-columns:380px 1fr}
 .row-3col{grid-template-columns:1fr 1fr 1fr}
 
 /* ── Cards ── */
@@ -166,15 +176,15 @@ header{
 .donut-sub{font-size:0.68rem;color:var(--txt3);margin-top:2px;font-weight:500}
 .legend{display:flex;flex-direction:column;gap:8px}
 .leg-row{
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;gap:8px;
   font-size:0.8rem;padding:6px 8px;
   border-radius:var(--r3);transition:background 120ms;cursor:default;
 }
 .leg-row:hover{background:var(--bg)}
 .leg-swatch{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-.leg-name{color:var(--txt2);flex:1;font-weight:500}
+.leg-name{color:var(--txt2);flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .leg-n{font-family:'Fira Code',monospace;font-size:0.78rem;font-weight:600;color:var(--txt)}
-.leg-bar{flex:0 0 60px;height:4px;background:var(--bg);border-radius:100px;overflow:hidden}
+.leg-bar{flex:0 0 40px;height:4px;background:var(--bg);border-radius:100px;overflow:hidden}
 .leg-fill{height:100%;border-radius:100px;transition:width 1s cubic-bezier(0.4,0,0.2,1)}
 .leg-pct{font-family:'Fira Code',monospace;font-size:0.68rem;color:var(--txt3);width:36px;text-align:right}
 
@@ -765,7 +775,7 @@ thead th.sorted .sort-arrow{opacity:1}
 </div>
 
 <!-- Cold charts row 3 -->
-<div class="row row-2col" style="grid-template-columns:1fr 1fr">
+<div class="row row-2col-wide">
   <div class="card" style="display:flex;flex-direction:column">
     <div class="card-title">Most-Targeted Companies <span class="card-badge">Top 14</span></div>
     <div style="position:relative;flex:1;min-height:300px"><canvas id="cCompanyChart"></canvas></div>
@@ -1212,7 +1222,7 @@ DATA.forEach(d=>{const r=getRole(d.title);roleCounts[r]=(roleCounts[r]||0)+1});
 
 // ── Donut ────────────────────────────────────────────────
 (function(){
-  const labels=Object.keys(CLS);
+  const labels=STAGE_ORDER.filter(l=>counts[l]);   // a stage with nobody in it is not a slice
   const vals=labels.map(l=>counts[l]||0);
   const colors=labels.map(l=>CLS[l].color);
   const ctx=document.getElementById("donutChart");
