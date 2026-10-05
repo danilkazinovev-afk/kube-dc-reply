@@ -33,6 +33,7 @@
   --ctr:#047857;--ctr-l:#ECFDF5;--ctr-b:rgba(4,120,87,0.15);
   --poc:#7E22CE;--poc-l:#FAF5FF;--poc-b:rgba(126,34,206,0.15);
   --qual:#A21CAF;--qual-l:#FDF4FF;--qual-b:rgba(162,28,175,0.15);
+  --stall:#B45309;--stall-l:#FFFBEB;--stall-b:rgba(180,83,9,0.15);
   --blue:#2563EB;
   --r:12px;--r2:8px;--r3:6px;
 }
@@ -177,6 +178,15 @@ header{
 .leg-fill{height:100%;border-radius:100px;transition:width 1s cubic-bezier(0.4,0,0.2,1)}
 .leg-pct{font-family:'Fira Code',monospace;font-size:0.68rem;color:var(--txt3);width:36px;text-align:right}
 
+
+/* ── First partner calls ── */
+.sec-note{max-width:900px;margin:-6px 0 18px;font-size:0.82rem;color:var(--txt3);line-height:1.6}
+.kpi-grid-5{grid-template-columns:repeat(5,1fr)}
+.row-2col-wide{grid-template-columns:1fr 1fr}
+table.mini th,table.mini td{font-size:0.78rem;padding:8px 10px}
+th.num,td.num{text-align:right;font-family:'Fira Code',monospace}
+@media (max-width:1100px){.kpi-grid-5{grid-template-columns:repeat(2,1fr)}
+  .row-2col-wide{grid-template-columns:1fr}}
 /* ── Funnel ── */
 .funnel{display:flex;flex-direction:column;gap:14px;padding-top:2px}
 .f-stage{display:flex;align-items:center;gap:14px}
@@ -273,6 +283,7 @@ input[type=search]::-webkit-search-cancel-button{display:none}
 .pill.on[data-c="Contracting"]{background:var(--ctr-l);border-color:var(--ctr);color:var(--ctr)}
 .pill.on[data-c="Strong interest - PoC"]{background:var(--poc-l);border-color:var(--poc);color:var(--poc)}
 .pill.on[data-c="Qualified (Call +)"]{background:var(--qual-l);border-color:var(--qual);color:var(--qual)}
+.pill.on[data-c="Stalled after call"]{background:var(--stall-l);border-color:var(--stall);color:var(--stall)}
 .tbl-scroll{overflow:auto;max-height:480px}
 table{width:100%;border-collapse:collapse;font-size:0.82rem}
 thead th{
@@ -315,6 +326,7 @@ td{padding:11px 16px;vertical-align:middle;color:var(--txt)}
 .bctr{background:var(--ctr-l);color:var(--ctr);border-color:var(--ctr-b)}.bctr .b-dot{background:var(--ctr)}
 .bpoc{background:var(--poc-l);color:var(--poc);border-color:var(--poc-b)}.bpoc .b-dot{background:var(--poc)}
 .bq{background:var(--qual-l);color:var(--qual);border-color:var(--qual-b)}.bq .b-dot{background:var(--qual)}
+.bst{background:var(--stall-l);color:var(--stall);border-color:var(--stall-b)}.bst .b-dot{background:var(--stall)}
 .empty{text-align:center;padding:52px;color:var(--txt3);font-size:0.88rem}
 
 /* ── Focus ── */
@@ -553,7 +565,7 @@ thead th.sorted .sort-arrow{opacity:1}
     <div class="hdr-right">
       <div class="hdr-chip"><strong id="hdrCount">270</strong> contacts</div>
       <div class="hdr-chip"><strong id="hdrStages">6</strong> stages</div>
-      <div class="hdr-chip" id="hdrDate">Oct 1, 2026</div>
+      <div class="hdr-chip" id="hdrDate">Oct 5, 2026</div>
     </div>
   </div>
 </header>
@@ -799,6 +811,53 @@ thead th.sorted .sort-arrow{opacity:1}
   </div>
 </div>
 
+<!-- ══ First partner calls ══════════════════════════════════════════ -->
+<div class="cold-head">
+  <h2>First Partner Calls — what each month's replies turned into</h2>
+  <span class="cold-tag">calls + outcomes</span>
+</div>
+<p class="sec-note">Every outcome is counted against the month the prospect <strong>replied</strong>, not the month the call happened or the deal closed. A January reply that became a June signature is January's win.</p>
+
+<div class="kpi-grid kpi-grid-5">
+  <div class="kpi"><div class="kpi-lbl">First calls</div><div class="kpi-val" id="fTotal">0</div><div class="kpi-sub">Held with a partner</div></div>
+  <div class="kpi"><div class="kpi-lbl">From a reply</div><div class="kpi-val" style="color:var(--int)" id="fTraced">0</div><div class="kpi-sub" id="fTracedSub">Traceable to this outreach</div></div>
+  <div class="kpi"><div class="kpi-lbl">PoC or better</div><div class="kpi-val" style="color:var(--poc)" id="fPoc">0</div><div class="kpi-sub" id="fPocSub">Of all first calls</div></div>
+  <div class="kpi"><div class="kpi-lbl">Closed won</div><div class="kpi-val" style="color:var(--won)" id="fWon">0</div><div class="kpi-sub" id="fWonSub">Of all first calls</div></div>
+  <div class="kpi"><div class="kpi-lbl">Reply to call</div><div class="kpi-val" style="color:var(--nn)" id="fLag">0</div><div class="kpi-sub">Median days</div></div>
+</div>
+
+<div class="row row-2col-wide">
+  <div class="card">
+    <div class="card-title">Replies by Month, and What They Became <span class="card-badge" id="fMonthBadge"></span></div>
+    <div style="position:relative;flex:1;min-height:320px"><canvas id="fMonthChart"></canvas></div>
+    <div class="ins-list" id="fMonthNote"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Month by Month</div>
+    <div class="tbl-scroll" style="max-height:380px">
+      <table class="mini">
+        <thead><tr><th>Reply month</th><th class="num">Replies</th><th class="num">Calls</th><th class="num">PoC+</th><th class="num">Won</th><th class="num">Call rate</th></tr></thead>
+        <tbody id="fMonthTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="tbl-wrap">
+  <div class="tbl-head">
+    <div class="tbl-title">Every First Partner Call <em id="fCntLbl"></em></div>
+    <div class="tbl-tools">
+      <div class="pills" id="fPills" role="group" aria-label="Filter calls by stage"></div>
+    </div>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Company</th><th>Domain</th><th>Replied</th><th>First call</th><th class="num">Days</th><th>Stage today</th></tr></thead>
+      <tbody id="fTbody"></tbody>
+    </table>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -806,6 +865,11 @@ const DATA=[
 {fn:"Kiarash",ln:"Kiazand",title:"Founder & CEO",co:"Cloud Acropolis",ctry:"Lithuania",li:"https://www.linkedin.com/in/kiarash-kiazand-ba088645",cls:"Closed Won"},
 {fn:"Felipe",ln:"Barreto",title:"Founder",co:"Fabweb Soluções em Datacenter",ctry:"Brazil",li:"http://www.linkedin.com/in/felipe-augusto-barreto-00978532",cls:"Closed Won"},
 {fn:"Arni",ln:"Johannesson",title:"CEO",co:"Webdock.io",ctry:"Denmark",li:"https://www.linkedin.com/in/arni-johannesson-321136163",cls:"Closed Won"},
+{fn:"Doan",ln:"Hanh",title:"Deputy Director Multicloudsoc, Cloud Computing",co:"CMC Telecom",ctry:"Vietnam",li:"https://www.linkedin.com/in/doan-van-hanh-6a426361",cls:"Strong interest - PoC"},
+{fn:"Ta",ln:"Hau",title:"IT Project Director for CMC Telecom",co:"CMC Telecom",ctry:"Vietnam",li:"https://www.linkedin.com/in/ta-trung-hau-228879b1",cls:"Strong interest - PoC"},
+{fn:"Nguyen",ln:"Khoa",title:"Enterprise Sales Director",co:"CMC Telecom",ctry:"Vietnam",li:"https://www.linkedin.com/in/nguyen-minh-khoa-a1057a35",cls:"Strong interest - PoC"},
+{fn:"Dieu",ln:"Nguyen",title:"Head of Human Resources",co:"CMC Telecom",ctry:"Denmark",li:"https://www.linkedin.com/in/diệu-anh-nguyễn-93a12214b",cls:"Strong interest - PoC"},
+{fn:"Sujan",ln:"Rajlim",title:"Head of Account and Finance",co:"DataHub Nepal",ctry:"Nepal",li:"https://www.linkedin.com/in/sujan-rajlim-rai-196547103",cls:"Strong interest - PoC"},
 {fn:"Deepak",ln:"Shrestha",title:"Managing Director",co:"DataHub Nepal",ctry:"Nepal",li:"https://www.linkedin.com/in/deepak-shrestha-datahub",cls:"Strong interest - PoC"},
 {fn:"Tetiana",ln:"Gerashchenko",title:"Head of Procurement",co:"Datatsentr 'PARKOVII'",ctry:"Ukraine",li:"https://www.linkedin.com/in/тетяна-геращенко-146300222",cls:"Strong interest - PoC"},
 {fn:"Andrii",ln:"Slutskyi",title:"Head of The Department for Development of Partnerships, Indirect Sales Channels",co:"Datatsentr 'PARKOVII'",ctry:"Ukraine",li:"https://www.linkedin.com/in/andrii-slutskyi",cls:"Strong interest - PoC"},
@@ -817,6 +881,7 @@ const DATA=[
 {fn:"Eugeniu",ln:"Croitorov",title:"CTO",co:"AlexHost",ctry:"Moldova",li:"https://www.linkedin.com/in/eugeniu-croitorov-3a43a64",cls:"Qualified (Call +)"},
 {fn:"Matthew",ln:"Burden",title:"CEO",co:"BlackBox Hosting",ctry:"United Kingdom",li:"https://www.linkedin.com/in/matthew-burden-2bb0379",cls:"Qualified (Call +)"},
 {fn:"Rob",ln:"Cresswell",title:"Head of Technical Operations",co:"BlackBox Hosting",ctry:"United Kingdom",li:"https://www.linkedin.com/in/rob-cresswell-94b0972",cls:"Qualified (Call +)"},
+{fn:"No",ln:"",title:"",co:"BlueServers",ctry:"",li:"",cls:"Qualified (Call +)"},
 {fn:"Artur",ln:"Hatsaturjan",title:"Chief Executive Officer",co:"Core Hosting",ctry:"Estonia",li:"https://www.linkedin.com/in/artur-hatsaturjan",cls:"Qualified (Call +)"},
 {fn:"Vinayan",ln:"Benedict",title:"director",co:"Flashnet",ctry:"Tanzania",li:"https://www.linkedin.com/in/vinayan-benedict-2272108",cls:"Qualified (Call +)"},
 {fn:"Vinayan",ln:"Benedict",title:"Director",co:"Flashnet Tanzania",ctry:"Tanzania",li:"https://www.linkedin.com/in/vinayan-benedict-2272108",cls:"Qualified (Call +)"},
@@ -834,8 +899,17 @@ const DATA=[
 {fn:"Mohit",ln:"Kambli",title:"Head of Domains",co:"UltaHost",ctry:"India",li:"https://www.linkedin.com/in/mohitkambli",cls:"Qualified (Call +)"},
 {fn:"Nima",ln:"Mazraeh",title:"Head of Cloud Infrastructure",co:"UltaHost",ctry:"Turkey",li:"https://www.linkedin.com/in/nima-alizadeh-mazraeh",cls:"Qualified (Call +)"},
 {fn:"Valerii",ln:"Kindzerski",title:"Head of Business Development",co:"Unihost.com",ctry:"Portugal",li:"https://www.linkedin.com/in/vkindzerski",cls:"Qualified (Call +)"},
+{fn:"Alex",ln:"Storozhuk",title:"Director of Business Operations",co:"Unihost.com",ctry:"Ukraine",li:"https://www.linkedin.com/in/alex-storozhuk",cls:"Qualified (Call +)"},
+{fn:"Pilin",ln:"Petr",title:"Owner",co:"Cloud Holding",ctry:"Czech Republic",li:"http://www.linkedin.com/in/pilinpetr",cls:"Stalled after call"},
+{fn:"Charalampos",ln:"Katsianoudis",title:"founder and CTO",co:"CryptexSoft",ctry:"Greece",li:"https://www.linkedin.com/in/charalampos-katsianoudis-88007b33",cls:"Stalled after call"},
+{fn:"Abid",ln:"Mallhi",title:"Head of Operations",co:"CubeXS Weatherly",ctry:"Pakistan",li:"https://www.linkedin.com/in/abid-mallhi-1b6a3487",cls:"Stalled after call"},
+{fn:"Javair",ln:"Waheed",title:"Director of Sales Marketing",co:"CubeXS Weatherly",ctry:"Pakistan",li:"https://www.linkedin.com/in/javairwaheed",cls:"Stalled after call"},
+{fn:"Aaron",ln:"Smith",title:"Principal CEO",co:"EUGameHost",ctry:"United Kingdom",li:"https://www.linkedin.com/in/aaron-smith-997959241",cls:"Stalled after call"},
+{fn:"Aaron",ln:"Smith",title:"Company Director",co:"NorwichDC",ctry:"United Kingdom",li:"https://www.linkedin.com/in/aaron-smith-997959241",cls:"Stalled after call"},
+{fn:"Laurynas",ln:"Dranseika",title:"CTO and Co-Owner",co:"TeamHosty",ctry:"Lithuania",li:"https://www.linkedin.com/in/laurynas-dranseika-a8963069",cls:"Stalled after call"},
+{fn:"Patryk",ln:"Kussy",title:"director of hosting",co:"Tier.Net",ctry:"United States",li:"https://www.linkedin.com/in/patrykkussy",cls:"Stalled after call"},
+{fn:"Jasmeet",ln:"Singh",title:"founder",co:"Webyne datacenter",ctry:"India",li:"https://www.linkedin.com/in/jasmeetsin",cls:"Stalled after call"},
 {fn:"Igor",ln:"Shats",title:"Chief Executive Officer in Baltic States",co:"Beehosting",ctry:"Estonia",li:"https://www.linkedin.com/in/igor-shats-24338021",cls:"Demo"},
-{fn:"Alex",ln:"Storozhuk",title:"Director of Business Operations",co:"Unihost.com",ctry:"Ukraine",li:"https://www.linkedin.com/in/alex-storozhuk",cls:"Demo"},
 {fn:"Ashim",ln:"A",title:"founder and network and system administrator",co:"",ctry:"India",li:"https://www.linkedin.com/in/ashim-ahamed",cls:"Interested"},
 {fn:"Christoph",ln:"Lerch",title:"head of customer support",co:"",ctry:"Austria",li:"https://www.linkedin.com/in/cvlerch",cls:"Interested"},
 {fn:"Hisham",ln:"Malik",title:"director and co-founder",co:"",ctry:"United Arab Emirates",li:"https://www.linkedin.com/in/hisham-malik-nextage",cls:"Interested"},
@@ -848,16 +922,11 @@ const DATA=[
 {fn:"Yes",ln:"",title:"",co:"AvaHost",ctry:"",li:"",cls:"Interested"},
 {fn:"Dirk",ln:"Webbeler",title:"CEO and Founder",co:"Blue Technologies . & . KG",ctry:"Ruhr Region",li:"https://www.linkedin.com/in/dirk-webbeler-a8a66965",cls:"Interested"},
 {fn:"Hannan",ln:"Nozari",title:"CEO",co:"BuyVM",ctry:"United Arab Emirates",li:"https://www.linkedin.com/in/hannan-nozari",cls:"Interested"},
-{fn:"Pilin",ln:"Petr",title:"Owner",co:"Cloud Holding",ctry:"Czech Republic",li:"http://www.linkedin.com/in/pilinpetr",cls:"Interested"},
 {fn:"Dor",ln:"Elbaz",title:"Chief Marketing Officer",co:"Cloud Lease",ctry:"Israel",li:"https://www.linkedin.com/in/dor-elbaz-574126264",cls:"Interested"},
 {fn:"Akash",ln:"Agrawal",title:"founder and CEO",co:"Cloudexter",ctry:"India",li:"https://www.linkedin.com/in/akash-agr",cls:"Interested"},
 {fn:"Kostiantyn",ln:"Velychkovskyi",title:"Chief Technology Officer",co:"CloudFarm",ctry:"Cyprus",li:"http://www.linkedin.com/in/kostiantyn-velychkovskyi-41331373",cls:"Interested"},
-{fn:"Doan",ln:"Hanh",title:"Deputy Director Multicloudsoc, Cloud Computing",co:"CMC Telecom",ctry:"Vietnam",li:"https://www.linkedin.com/in/doan-van-hanh-6a426361",cls:"Interested"},
 {fn:"Peter",ln:"Atkin",title:"Founder and CTO",co:"Computer Facilities Technical Services",ctry:"Uganda",li:"https://www.linkedin.com/in/peteratkin",cls:"Interested"},
 {fn:"Stefan",ln:"Tuebinger",title:"CTO",co:"Concat",ctry:"Germany",li:"http://www.linkedin.com/in/stefan-tübinger",cls:"Interested"},
-{fn:"Charalampos",ln:"Katsianoudis",title:"founder and CTO",co:"CryptexSoft",ctry:"Greece",li:"https://www.linkedin.com/in/charalampos-katsianoudis-88007b33",cls:"Interested"},
-{fn:"Abid",ln:"Mallhi",title:"Head of Operations",co:"CubeXS Weatherly",ctry:"Pakistan",li:"https://www.linkedin.com/in/abid-mallhi-1b6a3487",cls:"Interested"},
-{fn:"Javair",ln:"Waheed",title:"Director of Sales Marketing",co:"CubeXS Weatherly",ctry:"Pakistan",li:"https://www.linkedin.com/in/javairwaheed",cls:"Interested"},
 {fn:"Anuj",ln:"Bairathi",title:"Founder, CEO",co:"Cyfuture",ctry:"India",li:"https://www.linkedin.com/in/abairathi",cls:"Interested"},
 {fn:"Ryne",ln:"Cooper",title:"Director of Growth",co:"Data Holdings Data Center",ctry:"United States",li:"https://www.linkedin.com/in/ryne-cooper",cls:"Interested"},
 {fn:"Dilip",ln:"Singh",title:"IT manager",co:"DataHub",ctry:"Nepal",li:"https://www.linkedin.com/in/dilipsingh556",cls:"Interested"},
@@ -866,7 +935,6 @@ const DATA=[
 {fn:"Francesco",ln:"Gruner",title:"Digital Transformation Specialist",co:"Digitronica Solution Srl",ctry:"Italy",li:"https://www.linkedin.com/in/francescogruner/",cls:"Interested"},
 {fn:"Jamie",ln:"Le",title:"co-founder",co:"DreamIT Host",ctry:"Australia",li:"https://www.linkedin.com/in/jamieleau",cls:"Interested"},
 {fn:"Andreas",ln:"Bezuh",title:"Founder & CEO",co:"ecomDATA",ctry:"Austria",li:"http://www.linkedin.com/in/andreas-bezuh-13b307105",cls:"Interested"},
-{fn:"Aaron",ln:"Smith",title:"Principal CEO",co:"EUGameHost",ctry:"United Kingdom",li:"https://www.linkedin.com/in/aaron-smith-997959241",cls:"Interested"},
 {fn:"Bucea",ln:"Bogdan",title:"CEO",co:"Fiber",ctry:"Italy",li:"https://www.linkedin.com/in/bucea-bogdan",cls:"Interested"},
 {fn:"Kk",ln:"Sharma",title:"founder and CEO",co:"Heroxhost",ctry:"India",li:"https://www.linkedin.com/in/kkshxrmx",cls:"Interested"},
 {fn:"Meenakshi",ln:"Chauhan",title:"director and head - business development",co:"Host2Boost",ctry:"India",li:"https://www.linkedin.com/in/meenakshi-chauhan",cls:"Interested"},
@@ -894,7 +962,6 @@ const DATA=[
 {fn:"Sacha",ln:"Kriech",title:"Geschäftsführer",co:"netpart Services",ctry:"Switzerland",li:"http://www.linkedin.com/in/sacha-kriech-59a81a64",cls:"Interested"},
 {fn:"Thanh",ln:"Nguyen",title:"CEO and Founder",co:"Nguyen Ngoc Thanh Trading Company",ctry:"Vietnam",li:"https://www.linkedin.com/in/nguyendthanh",cls:"Interested"},
 {fn:"Yes",ln:"",title:"",co:"Nicalia",ctry:"",li:"",cls:"Interested"},
-{fn:"Aaron",ln:"Smith",title:"Company Director",co:"NorwichDC",ctry:"United Kingdom",li:"https://www.linkedin.com/in/aaron-smith-997959241",cls:"Interested"},
 {fn:"Patrick",ln:"Saridjan",title:"Product Owner",co:"NovoServe",ctry:"France",li:"https://www.linkedin.com/in/patrick-saridjan-79b9533",cls:"Interested"},
 {fn:"Khawaja",ln:"Owais",title:"CEO and founder",co:"OBHost",ctry:"Pakistan",li:"https://www.linkedin.com/in/mohammadowaiskhalid",cls:"Interested"},
 {fn:"Yes",ln:"",title:"",co:"Owrbit",ctry:"",li:"",cls:"Interested"},
@@ -915,17 +982,14 @@ const DATA=[
 {fn:"Mayank",ln:"Mittal",title:"founder",co:"ServerStep",ctry:"India",li:"https://www.linkedin.com/in/serverstepofficial",cls:"Interested"},
 {fn:"Artem",ln:"Tsots",title:"Business Development Manager",co:"Sim-Networks",ctry:"Ukraine",li:"https://www.linkedin.com/in/artem-5102a1364",cls:"Interested"},
 {fn:"Ruchir",ln:"Shastri",title:"Founder and President",co:"Softsys Hosting",ctry:"India",li:"https://www.linkedin.com/in/ruchirshastri",cls:"Interested"},
-{fn:"Laurynas",ln:"Dranseika",title:"CTO and Co-Owner",co:"TeamHosty",ctry:"Lithuania",li:"https://www.linkedin.com/in/laurynas-dranseika-a8963069",cls:"Interested"},
 {fn:"Hisham",ln:"Malik",title:"Director and Co-Founder",co:"Temok Technologies",ctry:"United Arab Emirates",li:"https://www.linkedin.com/in/hisham-malik-nextage",cls:"Interested"},
 {fn:"Ritik",ln:"Barnwal",title:"founder",co:"TextraHost Web Solutions",ctry:"India",li:"https://www.linkedin.com/in/ritikbarnwal",cls:"Interested"},
-{fn:"Patryk",ln:"Kussy",title:"director of hosting",co:"Tier.Net",ctry:"United States",li:"https://www.linkedin.com/in/patrykkussy",cls:"Interested"},
 {fn:"Renato",ln:"Ferrua",title:"Head of Delivery",co:"Tinext Cloud",ctry:"Switzerland",li:"https://www.linkedin.com/in/rferrua",cls:"Interested"},
 {fn:"Emanuele",ln:"Roserba",title:"Head of Operations",co:"Tinext Cloud",ctry:"Switzerland",li:"https://www.linkedin.com/in/emanueleroserba",cls:"Interested"},
 {fn:"Mark",ln:"Schouten",title:"CTO and Owner",co:"Tuxis",ctry:"Netherlands",li:"https://www.linkedin.com/in/jmschouten",cls:"Interested"},
 {fn:"Sebastian",ln:"Genter",title:"CEO Chief Executive Officer",co:"VELEVO",ctry:"Germany",li:"http://www.linkedin.com/in/sebastian-frank-genter-b15a97101",cls:"Interested"},
 {fn:"Vladimir",ln:"Vieru",title:"Chief Executive Officer",co:"VerticHost",ctry:"Romania",li:"https://www.linkedin.com/in/vladimirvieru",cls:"Interested"},
 {fn:"Emmanuel",ln:"Ezema",title:"COO",co:"Vicservers",ctry:"Nigeria",li:"https://www.linkedin.com/in/emmanuel-ezema-03b508b7",cls:"Interested"},
-{fn:"Jasmeet",ln:"Singh",title:"founder",co:"Webyne datacenter",ctry:"India",li:"https://www.linkedin.com/in/jasmeetsin",cls:"Interested"},
 {fn:"Geert",ln:"Audenaert",title:"Co-Founder, Director & CTO",co:"whitesky.cloud",ctry:"Belgium",li:"https://www.linkedin.com/in/geertaudenaert/",cls:"Interested"},
 {fn:"Danny",ln:"Brown",title:"President",co:"Wowrack",ctry:"United States",li:"https://www.linkedin.com/in/dannysbrown",cls:"Interested"},
 {fn:"Francisca",ln:"Sauterel",title:"Head of Marketing",co:"Xelon",ctry:"France",li:"https://www.linkedin.com/in/francisca-rodo-sauterel",cls:"Interested"},
@@ -936,9 +1000,7 @@ const DATA=[
 {fn:"Martin",ln:"Linco",title:"CEO and CTO",co:"",ctry:"Hong Kong",li:"https://www.linkedin.com/in/martinlinco",cls:"Forwarded"},
 {fn:"Sina",ln:"Nasiri",title:"co-founder",co:"",ctry:"Turkey",li:"https://www.linkedin.com/in/sinanasiri",cls:"Forwarded"},
 {fn:"Caroline",ln:"Saeed",title:"Head of Accounting",co:"Binero",ctry:"Sweden",li:"https://www.linkedin.com/in/caroline-svanström-saeed",cls:"Forwarded"},
-{fn:"Dieu",ln:"Nguyen",title:"Head of Human Resources",co:"CMC Telecom",ctry:"Denmark",li:"https://www.linkedin.com/in/diệu-anh-nguyễn-93a12214b",cls:"Forwarded"},
 {fn:"Chinmay",ln:"Khandekar",title:"Chief Technology Officer",co:"CSpace Hostings",ctry:"India",li:"https://www.linkedin.com/in/khandekarchinmay/",cls:"Forwarded"},
-{fn:"Sujan",ln:"Rajlim",title:"Head of Account and Finance",co:"DataHub Nepal",ctry:"Nepal",li:"https://www.linkedin.com/in/sujan-rajlim-rai-196547103",cls:"Forwarded"},
 {fn:"Robert",ln:"Preda",title:"b2b digital channel product owner",co:"GTS Telecom",ctry:"Romania",li:"https://www.linkedin.com/in/robertpreda",cls:"Forwarded"},
 {fn:"Jeremy",ln:"Pease",title:"chief executive officer",co:"Hivelocity",ctry:"United States",li:"https://www.linkedin.com/in/jeremy-pease-a53b972",cls:"Forwarded"},
 {fn:"U2C",ln:"Agency",title:"Agency Owner",co:"Hostinger",ctry:"Morocco",li:"https://www.linkedin.com/in/u2c-agency-3a470b315",cls:"Forwarded"},
@@ -951,8 +1013,6 @@ const DATA=[
 {fn:"Eduardo",ln:"Gonzalez Ruiz",title:"CEO",co:"",ctry:"Spain",li:"https://www.linkedin.com/in/edupin",cls:"Not Now"},
 {fn:"Weixiang",ln:"Zhuo",title:"CEO",co:"",ctry:"Singapore",li:"https://www.linkedin.com/in/ace-zhuo",cls:"Not Now"},
 {fn:"Daniel",ln:"A",title:"Solutions Director",co:"Binero",ctry:"Sweden",li:"https://www.linkedin.com/in/daniel-askari",cls:"Not Now"},
-{fn:"No",ln:"",title:"",co:"BlueServers",ctry:"",li:"",cls:"Not Now"},
-{fn:"Nguyen",ln:"Khoa",title:"Enterprise Sales Director",co:"CMC Telecom",ctry:"Vietnam",li:"https://www.linkedin.com/in/nguyen-minh-khoa-a1057a35",cls:"Not Now"},
 {fn:"Prashanth",ln:"Baskaran",title:"COO and director",co:"HostCircle",ctry:"India",li:"https://www.linkedin.com/in/baskaranprashanth",cls:"Not Now"},
 {fn:"Hasibur",ln:"Rashid",title:"CEO",co:"Intercloud",ctry:"Bangladesh",li:"https://www.linkedin.com/in/hasiburrashid",cls:"Not Now"},
 {fn:"Mehmet",ln:"Can",title:"CEO",co:"İşNet",ctry:"Turkey",li:"http://www.linkedin.com/in/mehmet-fahri-can-75077b1",cls:"Not Now"},
@@ -968,7 +1028,6 @@ const DATA=[
 {fn:"Jordan",ln:"Unegbu",title:"founder and CEO",co:"BoostedHost",ctry:"Switzerland",li:"https://www.linkedin.com/in/jordan-unegbu",cls:"Not Interested"},
 {fn:"Bimlesh",ln:"Changia",title:"MD",co:"Changia",ctry:"India",li:"https://www.linkedin.com/in/bchangia",cls:"Not Interested"},
 {fn:"Ravi",ln:"Kumar",title:"Chief Executive Officer",co:"Cloudlinks Technologies",ctry:"India",li:"https://www.linkedin.com/in/ravi-kumar-b91254285",cls:"Not Interested"},
-{fn:"Ta",ln:"Hau",title:"IT Project Director for CMC Telecom",co:"CMC Telecom",ctry:"Vietnam",li:"https://www.linkedin.com/in/ta-trung-hau-228879b1",cls:"Not Interested"},
 {fn:"Sladan",ln:"Ilic",title:"CEO",co:"Croatian Web",ctry:"Croatia",li:"https://www.linkedin.com/in/sladan-ilic",cls:"Not Interested"},
 {fn:"Yilmaz",ln:"Turkan",title:"CEO",co:"Cygrids",ctry:"Sweden",li:"https://www.linkedin.com/in/yilmaz-turkan-4594697",cls:"Not Interested"},
 {fn:"Costel",ln:"Closca",title:"Co-Founder",co:"Datahost.ro",ctry:"Romania",li:"https://www.linkedin.com/in/closca-costel",cls:"Not Interested"},
@@ -1089,6 +1148,7 @@ const CLS={
   "Contracting":   {color:"#047857",light:"#ECFDF5",badge:"bctr"},
   "Strong interest - PoC":{color:"#7E22CE",light:"#FAF5FF",badge:"bpoc"},
   "Qualified (Call +)":   {color:"#A21CAF",light:"#FDF4FF",badge:"bq"},
+  "Stalled after call":   {color:"#B45309",light:"#FFFBEB",badge:"bst"},
 };
 
 const TOOLTIP={
@@ -1106,11 +1166,11 @@ DATA.forEach(d=>counts[d.cls]=(counts[d.cls]||0)+1);
 const total=DATA.length;
 
 // ── Stage order (for status sorting & grouping) ──────────
-const STAGE_ORDER=["Closed Won","Contracting","Strong interest - PoC","Qualified (Call +)","Demo","Interested","Forwarded","Not Now","Not Interested","Do Not Contact","Uncategorised","Closed Lost"];
-const ADVANCED=["Closed Won","Contracting","Strong interest - PoC","Qualified (Call +)","Demo"];
+const STAGE_ORDER=["Closed Won","Contracting","Strong interest - PoC","Qualified (Call +)","Stalled after call","Demo","Interested","Forwarded","Not Now","Not Interested","Do Not Contact","Uncategorised","Closed Lost"];
+const ADVANCED=["Closed Won","Contracting","Strong interest - PoC","Qualified (Call +)","Stalled after call","Demo"];
 const sumOf=keys=>keys.reduce((a,k)=>a+(counts[k]||0),0);
 // Everything short of a decided outcome. Drives the Pipeline KPI.
-const PIPELINE=["Contracting","Strong interest - PoC","Qualified (Call +)","Demo","Interested"];
+const PIPELINE=["Contracting","Strong interest - PoC","Qualified (Call +)","Stalled after call","Demo","Interested"];
 
 // ── Inject KPI numbers from data (never goes stale) ──────
 (function(){
@@ -6041,6 +6101,139 @@ document.getElementById("cExportBtn").addEventListener("click",()=>{
   a.href=url;a.download="kube-dc-cold-contacts-"+tag+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 });
 sortHeaders();render();
+})();
+</script>
+
+<script>
+(function(){
+const CALLS=[
+{co:"Cloudscale",dom:"cloudscale.ch",call:"2026-01-28",rep:"2026-01-23",lag:5,st:"Closed Lost"},
+{co:"Cloud Acropolis",dom:"cloudacropolis.com",call:"2026-01-29",rep:"2026-01-23",lag:6,st:"Closed Won"},
+{co:"Webdock",dom:"webdock.io",call:"2026-02-03",rep:"2026-01-29",lag:5,st:"Closed Won"},
+{co:"AlexHost",dom:"alexhost.com",call:"2026-02-06",rep:"2026-01-30",lag:7,st:"Qualified (Call +)"},
+{co:"CloudSetu / Natsav",dom:"cloudsetu.com",call:"2026-02-06",rep:"2026-02-05",lag:1,st:"Strong interest - PoC"},
+{co:"LiveDNS",dom:"livedns.co.il",call:"2026-02-12",rep:"2026-02-09",lag:3,st:"Strong interest - PoC"},
+{co:"FlokiNET",dom:"flokinet.is",call:"2026-02-27",rep:"2026-02-10",lag:17,st:"Qualified (Call +)"},
+{co:"FABWEB",dom:"fabweb.com.br",call:"2026-03-02",rep:"2026-01-30",lag:31,st:"Closed Won"},
+{co:"CloudFerro",dom:"cloudferro.com",call:"2026-03-31",rep:"",lag:"",st:"Strong interest - PoC"},
+{co:"Unihost",dom:"unihost.com",call:"2026-04-06",rep:"2026-02-25",lag:40,st:"Qualified (Call +)"},
+{co:"TeamHosty",dom:"teamhosty.com",call:"2026-04-13",rep:"2026-03-20",lag:24,st:"Stalled after call"},
+{co:"Max1.Cloud",dom:"max1.cloud",call:"2026-04-15",rep:"",lag:"",st:"Qualified (Call +)"},
+{co:"Omilia",dom:"omilia.com",call:"2026-04-17",rep:"",lag:"",st:"Qualified (Call +)"},
+{co:"Cloud Holding",dom:"cloud-holding.com",call:"2026-04-21",rep:"2026-03-20",lag:32,st:"Stalled after call"},
+{co:"Ministry of Defence UA",dom:"mod.gov.ua",call:"2026-04-21",rep:"",lag:"",st:"Strong interest - PoC"},
+{co:"Nava.com",dom:"nava.com",call:"2026-04-27",rep:"",lag:"",st:"Qualified (Call +)"},
+{co:"Datahub",dom:"datahub.com.np",call:"2026-05-11",rep:"2026-05-08",lag:3,st:"Strong interest - PoC"},
+{co:"Snel / Ormilon",dom:"snel.com",call:"2026-05-15",rep:"2026-04-21",lag:24,st:"Qualified (Call +)"},
+{co:"Ultahost",dom:"ultahost.com",call:"2026-05-18",rep:"2026-01-23",lag:115,st:"Qualified (Call +)"},
+{co:"CubeXS Weatherly",dom:"cubexsweatherly.com",call:"2026-05-22",rep:"2026-05-13",lag:9,st:"Stalled after call"},
+{co:"Datacenter PARKOVYI",dom:"datapark.com.ua",call:"2026-05-27",rep:"2026-05-13",lag:14,st:"Strong interest - PoC"},
+{co:"CryptexSoft",dom:"cryptexsoft.com",call:"2026-05-28",rep:"2026-05-22",lag:6,st:"Stalled after call"},
+{co:"Webyne Data Center",dom:"webyne.com",call:"2026-06-01",rep:"2026-05-29",lag:3,st:"Stalled after call"},
+{co:"BlackBox Hosting",dom:"blackboxhosting.co.uk",call:"2026-06-12",rep:"2026-06-09",lag:3,st:"Qualified (Call +)"},
+{co:"FlashNet",dom:"flashnet.co.tz",call:"2026-06-15",rep:"",lag:"",st:"Qualified (Call +)"},
+{co:"EUGameHost / NorwichDC",dom:"norwichdc.com",call:"2026-06-18",rep:"",lag:"",st:"Stalled after call"},
+{co:"MyDataCenter",dom:"mydatacenter.at",call:"2026-06-30",rep:"",lag:"",st:"Strong interest - PoC"},
+{co:"Multinet",dom:"multinet.com.pk",call:"2026-07-16",rep:"2026-07-07",lag:9,st:"Qualified (Call +)"},
+{co:"HostPapa / ColoCrossing",dom:"",call:"2026-07-16",rep:"2026-01-27",lag:170,st:"Qualified (Call +)"},
+{co:"Tier.Net",dom:"tier.net",call:"2026-08-19",rep:"",lag:"",st:"Stalled after call"},
+{co:"BlueVPS",dom:"bluevps.com",call:"2026-09-08",rep:"2026-09-02",lag:6,st:"Qualified (Call +)"},
+{co:"CMC Telecom",dom:"cmctelecom.vn",call:"2026-09-30",rep:"",lag:"",st:"Strong interest - PoC"}
+];
+const FMONTHS=[
+{m:"2026-01",replies:24,calls:7,poc:3,won:3},
+{m:"2026-02",replies:10,calls:4,poc:2,won:0},
+{m:"2026-03",replies:36,calls:2,poc:0,won:0},
+{m:"2026-04",replies:8,calls:1,poc:0,won:0},
+{m:"2026-05",replies:15,calls:5,poc:2,won:0},
+{m:"2026-06",replies:18,calls:1,poc:0,won:0},
+{m:"2026-07",replies:16,calls:1,poc:0,won:0},
+{m:"2026-08",replies:22,calls:0,poc:0,won:0},
+{m:"2026-09",replies:16,calls:1,poc:0,won:0}
+];
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+const traced=CALLS.filter(c=>c.rep).length;
+const lags=CALLS.filter(c=>c.lag!=="").map(c=>c.lag).sort((a,b)=>a-b);
+const poc=CALLS.filter(c=>c.st==="Strong interest - PoC"||c.st==="Closed Won").length;
+const won=CALLS.filter(c=>c.st==="Closed Won").length;
+set("fTotal",CALLS.length);
+set("fTraced",traced);
+set("fTracedSub",Math.round(traced/CALLS.length*100)+"% reached us by reply");
+set("fPoc",poc); set("fPocSub",Math.round(poc/CALLS.length*100)+"% of first calls");
+set("fWon",won); set("fWonSub",Math.round(won/CALLS.length*100)+"% of first calls");
+set("fLag",lags.length?lags[Math.floor(lags.length/2)]:"—");
+set("fMonthBadge",FMONTHS.length+" months");
+
+// ── chart: replies as the base, outcomes stacked on the same month ──
+const lbl=FMONTHS.map(m=>{const[y,mo]=m.m.split("-");
+  return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+mo-1]+" '"+y.slice(2);});
+new Chart(document.getElementById("fMonthChart"),{type:"bar",
+  data:{labels:lbl,datasets:[
+    {label:"Replies",data:FMONTHS.map(m=>m.replies),backgroundColor:"#CBD5E1",borderRadius:5,borderSkipped:false,order:3},
+    {label:"Became a call",data:FMONTHS.map(m=>m.calls),backgroundColor:"#2563EB",borderRadius:5,borderSkipped:false,order:2},
+    {label:"PoC or better",data:FMONTHS.map(m=>m.poc),backgroundColor:"#7E22CE",borderRadius:5,borderSkipped:false,order:1},
+    {label:"Closed won",data:FMONTHS.map(m=>m.won),backgroundColor:"#059669",borderRadius:5,borderSkipped:false,order:0}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:"bottom",labels:{boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:"circle",
+      color:"#334155",font:{family:"'Inter'",size:11,weight:"500"},padding:14}},
+      tooltip:{backgroundColor:"#FFFFFF",borderColor:"rgba(15,23,42,0.1)",borderWidth:1,titleColor:"#0F172A",
+        bodyColor:"#64748B",padding:12,cornerRadius:8,
+        titleFont:{family:"'Inter'",weight:"600",size:12},bodyFont:{family:"'Inter'",size:12}}},
+    scales:{x:{grid:{display:false},border:{color:"transparent"},
+        ticks:{color:"#334155",font:{family:"'Inter'",size:11,weight:"500"}}},
+      y:{grid:{color:"rgba(15,23,42,0.05)"},border:{color:"transparent"},beginAtZero:true,
+        ticks:{color:"#94A3B8",font:{family:"'Fira Code'",size:11},precision:0}}},
+    animation:{duration:900}}});
+
+// which months actually produced something
+const winM=FMONTHS.filter(m=>m.won).map(m=>lbl[FMONTHS.indexOf(m)]);
+const pocM=FMONTHS.filter(m=>m.poc&&!m.won).map(m=>lbl[FMONTHS.indexOf(m)]);
+const dead=FMONTHS.filter(m=>!m.calls).map(m=>lbl[FMONTHS.indexOf(m)]);
+const note=document.getElementById("fMonthNote");
+const row=(l,v)=>'<div class="ins-row"><span class="ins-lbl">'+l+'</span><span class="ins-val">'+esc(v)+'</span></div>';
+note.innerHTML=row("Produced a win",winM.join(", ")||"—")
+  +row("Reached PoC, no win yet",pocM.join(", ")||"—")
+  +row("No call from that month's replies",dead.join(", ")||"—");
+
+// month table
+document.getElementById("fMonthTbody").innerHTML=FMONTHS.map((m,i)=>'<tr>'
+  +'<td class="td-name">'+lbl[i]+'</td>'
+  +'<td class="num">'+m.replies+'</td>'
+  +'<td class="num">'+(m.calls||'<span style="color:var(--txt4)">—</span>')+'</td>'
+  +'<td class="num">'+(m.poc||'<span style="color:var(--txt4)">—</span>')+'</td>'
+  +'<td class="num">'+(m.won||'<span style="color:var(--txt4)">—</span>')+'</td>'
+  +'<td class="num">'+(m.replies?Math.round(m.calls/m.replies*100)+"%":"—")+'</td></tr>').join("");
+
+// calls table + stage pills, generated from the data
+let ff="all";
+const STAGES=["Closed Won","Strong interest - PoC","Qualified (Call +)","Stalled after call","Closed Lost"];
+const present=STAGES.filter(s=>CALLS.some(c=>c.st===s));
+document.getElementById("fPills").innerHTML=
+  '<span class="pill on" data-c="all" tabindex="0" role="button" aria-pressed="true">All</span>'
+  +present.map(s=>'<span class="pill" data-c="'+s+'" tabindex="0" role="button" aria-pressed="false">'+s+'</span>').join("");
+function fRender(){
+  const rows=CALLS.filter(c=>ff==="all"||c.st===ff);
+  set("fCntLbl",rows.length===CALLS.length?CALLS.length+" calls":rows.length+" of "+CALLS.length+" shown");
+  document.getElementById("fTbody").innerHTML=rows.map(c=>{
+    const cfg=CLS[c.st]||{badge:"bn"};
+    return '<tr>'
+      +'<td class="td-name">'+esc(c.co)+'</td>'
+      +'<td class="td-co">'+(c.dom?esc(c.dom):'<span style="color:var(--txt4)">—</span>')+'</td>'
+      +'<td>'+(c.rep?esc(c.rep):'<span style="color:var(--txt4)" title="No Reply.io reply on record — this call came from another channel">not via Reply.io</span>')+'</td>'
+      +'<td>'+esc(c.call)+'</td>'
+      +'<td class="num">'+(c.lag===""?'<span style="color:var(--txt4)">—</span>':c.lag)+'</td>'
+      +'<td><span class="badge '+cfg.badge+'"><span class="b-dot"></span>'+esc(c.st)+'</span></td>'
+      +'</tr>';}).join("");
+}
+document.getElementById("fPills").addEventListener("click",e=>{
+  const p=e.target.closest(".pill");if(!p)return;ff=p.dataset.c;
+  document.querySelectorAll("#fPills .pill").forEach(x=>{const on=x.dataset.c===ff;
+    x.classList.toggle("on",on);x.setAttribute("aria-pressed",on?"true":"false");});
+  fRender();});
+document.getElementById("fPills").addEventListener("keydown",e=>{
+  if(e.key==="Enter"||e.key===" "){e.preventDefault();e.target.click();}});
+fRender();
 })();
 </script>
 </body>
